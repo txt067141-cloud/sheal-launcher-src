@@ -1,0 +1,182 @@
+SHEAL LAUNCHER v2.0.1 - LAUNCHER DE MINECRAFT (MORADO / NEGRO)
+===============================================================
+
+CONTENIDO
+- release\SHEAL-LAUNCHER-Portable.exe   App lista para usar (sin instalar nada).
+- src\                  Codigo fuente (React + TypeScript + CSS).
+- electron\             Electron: ventana, descargas, skins y lanzamiento.
+- public\backgrounds\   Las 8 imagenes de fondo que adjuntaste.
+- public\skins\         Las 15 skins que adjuntaste (PNG reales).
+- build\icon.png        Icono morado.
+- iniciar.bat           Abre la version web en http://localhost:8443.
+- ..\parte\SHEAL LAUNCHER\   Copia del codigo para Visual Studio 2026.
+
+COMO ABIRLO
+-----------
+1) EXE: doble clic en release\SHEAL-LAUNCHER-Portable.exe
+   (si Windows avisa: "Mas informacion" > "Ejecutar de todas formas").
+2) Version web: doble clic en iniciar.bat -> http://localhost:8443
+   (necesita Node.js 22 o superior).
+3) Desde el codigo: npm install / npm run desktop / npm run exe.
+
+LOGIN CON KEYAUTH (CLAVES)
+--------------------------
+- La pantalla de acceso pide una CLAVE de KeyAuth (keyauth.cc).
+- La aplicacion ya esta vinculada: nombre SHAEL, OwnerID y version 1.0.
+- En Ajustes > "KeyAuth · claves de acceso" vincula tu aplicación:
+  1. Entra a https://keyauth.cc/app/ y crea/selecciona tu aplicación.
+  2. Copia el NOMBRE de la app y el OWNERID (10 caracteres) del
+     código snippet que muestra el panel.
+  3. Pégalos en el launcher y pulsa "Guardar y vincular".
+  4. En el panel de KeyAuth genera las claves para tus amigos.
+- Cada inicio de sesión valida la clave contra la API de KeyAuth.
+  Las claves desactivadas/borradas dejan de funcionar al instante.
+
+SESIÓN
+------
+- La sesión se guarda localmente 30 dias si marcas "Recordarme".
+- El boton "Cerrar sesion" (esquina inferior izquierda) la elimina.
+
+DISCORD RICH PRESENCE (NUEVO)
+-----------------------------
+- Muestra "Minecraft X · Jugando con SHEAL LAUNCHER" en Discord
+  mientras el juego está abierto.
+- El Application ID (1572634976946622636) ya va fijo en el launcher:
+  no hay que configurar nada.
+- (Opcional) En https://discord.com/developers/applications puedes
+  subir assets llamados "logo" y "minecraft" para los iconos.
+- La presencia se apaga sola al cerrar Minecraft.
+
+PARTÍCULAS DENTRO DEL JUEGO (NUEVO)
+-----------------------------------
+- En Skins hay un interruptor "Partículas dentro del juego".
+- Al activarlo, el launcher instala Fabric Loader 0.20.1 +
+  Fabric API + el mod sheal-particles (incluido en la app).
+- Las partículas aparecen alrededor del personaje mientras juegas
+  (solo en tu cliente, nadie más las ve).
+- Dentro del apartado Skins aparece un "Menú de partículas" con
+  9 formas (polvo, corazón, llama, portal, varita, chispa, encanto,
+  nota, aura) y 9 colores + selector de color personalizado.
+- ALAS DECORATIVAS: interruptor "Alas decorativas" en el mismo menú.
+  Coloca alas 3D (como un cosmético) en la espalda del personaje, que
+  aletean y cambian de color. Son independientes de las partículas.
+  Hay 6 estilos: Angel, Fenix, Mariposa, Hada, Murcielago y Dragon.
+  El estilo y el color se cambian al instante mientras juegas.
+- El color afecta a "Polvo", "Aura" y las alas. Los cambios se
+  aplican al instante mientras juegas.
+- Funciona con Minecraft 26.3. La primera vez tarda un poco más
+  porque descarga los archivos de Fabric.
+
+SECCIONES
+---------
+- Inicio: banner con las imagenes de fondo y tarjetas de novedades.
+- Servidores: Hypixel, CubeCraft y UniversoCraft, con IP copiable.
+- Versiones: lista REAL de Mojang (releases y snapshots), descarga con
+  progreso y botones para abrir las carpetas:
+    * Mods    -> .minecraft\mods (para tus .jar)
+    * Shaders -> .minecraft\shaderpacks (para tus .zip)
+- Skins y cosmeticos: las 15 skins reales con su textura pixelada.
+- Ajustes: cuenta, fondos, opciones y rutas de Minecraft/Java.
+
+SKINS - INYECCION LOCAL (SOLO TU LA VES)
+----------------------------------------
+- Al pulsar "Usar skin" se genera un pack de recursos
+  .minecraft\resourcepacks\sheal_skin.zip que sobrescribe las texturas
+  por defecto del jugador (wide y slim). Es solo en TU pantalla:
+  ningun otro jugador ve el cambio.
+- Se activa automaticamente en .minecraft\options.txt (resourcePacks),
+  conservando los packs que ya tuvieras activados.
+- Tambien se guarda una copia en .minecraft\skins\ y en sheal-skin.json.
+- La skin se vuelve a inyectar en cada arranque del juego.
+
+CARPETAS Y DISCORD
+------------------
+- En Versiones hay botones para abrir: Mods, Shaders, Recursos
+  (pack de recursos) y la carpeta general de Minecraft.
+- El boton "Unete a Discord" abre https://discord.gg/k3hCrN7Ef
+
+COMPARTIR CON AMIGOS (INSTALADOR)
+---------------------------------
+1) Genera el instalador (en tu PC, con Node 22+):
+      npm install
+      npm run exe:installer
+   Sale en release\SHEAL-LAUNCHER-Setup.exe
+   (tambien puedes darles release\SHEAL-LAUNCHER-Portable.exe,
+   que es portatil y no necesita instalacion).
+2) Envia SOLO el archivo .exe a tus amigos (por Discord, Drive, etc.).
+   No les pases la carpeta del proyecto ni node_modules.
+3) Ellos hacen doble clic en SHEAL-LAUNCHER-Setup.exe:
+   - Si Windows avisa "Windows protegio su PC": "Mas informacion"
+     > "Ejecutar de todas formas".
+   - Elijan la carpeta de instalacion (o dejen la por defecto).
+   - Se crean accesos en Escritorio y Menu Inicio.
+4) Al abrir el launcher por primera vez:
+   - Crean su cuenta con "Crear cuenta" (sistema propio, funciona
+     sin internet para la cuenta).
+   - Van a Versiones y descargan la version que quieran (1.21.4,
+     26.3, etc.). Necesitan conexion a internet para esta descarga.
+   - Pulsan "JUGAR AHORA".
+
+MOTOR DE MINECRAFT INTEGRADO (CmlLib.Core)
+------------------------------------------
+- El instalador incluye SHEAL-Helper.exe (C#/.NET autocontenido, 68 MB),
+  basado en el codigo de CmlLib.Core que ya funcionaba.
+- Al descargar o pulsar Jugar, el launcherElectron llama a ese helper
+  en segundo plano: el helper instala la version y lanza el juego con
+  una sesion offline, y devuelve el progreso y cualquier error.
+- El EXE del helper lleva .NET incluido: no hace falta instalar .NET
+  en la PC de los amigos (esto era lo que fallaba antes).
+- Codigo fuente del helper: helper-src\
+
+DESCARGA DE MINECRAFT (OFICIAL + ESPEJO + TLAUNCHER)
+----------------------------------------------------
+- El launcher intenta descargar desde los servidores oficiales de Mojang.
+- Si no responden (bloqueo regional, cortes, etc.), cambia AUTOMATICAMENTE
+  a un espejo publico con los mismos archivos (cliente, librerias y
+  recursos), asi que la descarga no se queda colgada.
+- En Versiones hay un boton "Abrir TLauncher": si el amigo lo tiene
+  instalado lo abre para descargar versiones desde ahi; si no, abre la
+  pagina oficial de TLauncher para que lo instale. Las versiones que
+  TLauncher deje en .minecraft\versions son detectadas por nuestro launcher.
+
+JAVA AUTOMATICO (YA NO HACE FALTA INSTALARLO A MANO)
+---------------------------------------------------
+- Si el amigo NO tiene Java, el launcher descarga e instala
+  automaticamente Eclipse Temurin JRE 21 la primera vez que da a Jugar.
+- Sale una barra "Descargando Java 21..." en la parte inferior.
+- Si tiene Java o TLauncher, detecta el existente y no descarga nada,
+  PERO comprueba la version: Minecraft 26.x y 1.20.5+ necesitan Java 21+.
+  Si solo tiene Java 8/11/17/18, descarga Java 21 automaticamente desde
+  Adoptium; si ese servidor esta bloqueado, usa el runtime oficial de
+  Mojang/TLauncher (probado de extremo a extremo). Esto evita el error
+  "A Java Exception has occurred" y el arranque silencioso.
+- Si aun asi no se puede instalar Java, abre TLauncher y muestra en el
+  launcher un panel con el motivo exacto y boton "Copiar error".
+- Despues de instalar Java, se guarda en el perfil de la app y no se
+  vuelve a descargar.
+- Si el juego falla, el error se guarda en
+  .minecraft\logs\sheal-game.log para poder revisarlo.
+- Las versiones antiguas (1.8.9, 1.12) pueden necesitar Java 8 aparte.
+
+SI EL JUEGO ABRE PERO SALE ERROR DE OPENGL / "No context is current"
+--------------------------------------------------------------------
+Eso NO es del launcher: es la tarjeta gráfica (muy comun en maquinas
+virtuales VirtualBox/VMware, usuario "vboxuser").
+- En una VM: Configuracion > Pantalla > marcar "Habilitar aceleracion
+  3D", memoria de video 128 MB e instalar Guest Additions.
+- En una PC real: actualizar controladores de la grafica.
+- Como alternativa, instalar una version antigua (1.12.2) que solo
+  necesita OpenGL 2.1.
+
+REQUISITOS PARA ELLOS
+---------------------
+- Windows 10/64 bits o superior.
+- Conexion a internet solo para descargar la version de Minecraft
+  (y Java la primera vez, si no lo tienen).
+- ~1 GB libres para Minecraft + launcher.
+
+NOTAS
+-----
+- Todo se guarda en localStorage / perfil de la app de cada amigo.
+- Las skins se inyectan solo en su propia pantalla (pack local).
+- El Discord del launcher abre: https://discord.gg/k3hCrN7Ef

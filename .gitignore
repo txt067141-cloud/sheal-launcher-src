@@ -1,0 +1,12 @@
+node_modules/
+dist/
+dist-electron/
+release/
+release2/
+helper/
+helper-src/
+helper-out/
+*.exe
+*.blockmap
+*.log
+.DS_Store

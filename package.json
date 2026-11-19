@@ -1,0 +1,94 @@
+{
+  "name": "sheal-launcher",
+  "version": "2.0.1",
+  "private": true,
+  "description": "SHEAL LAUNCHER - Launcher de Minecraft con tema morado, login y servidores.",
+  "author": "SHEAL",
+  "type": "module",
+  "main": "dist-electron/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build:raw": "vite build",
+    "obfuscate": "node scripts/obfuscate.mjs",
+    "harden": "node scripts/harden-electron.mjs",
+    "build": "vite build && node scripts/obfuscate.mjs && node scripts/harden-electron.mjs",
+    "preview": "vite preview",
+    "desktop": "npm run build && electron .",
+    "exe": "npm run build && electron-builder --win portable --x64",
+    "exe:installer": "npm run build && electron-builder --win nsis --x64"
+  },
+  "build": {
+    "appId": "com.sheal.launcher",
+    "productName": "SHEAL LAUNCHER",
+    "copyright": "Copyright © 2026 SHEAL",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "build/icon.png",
+      "package.json"
+    ],
+    "asar": true,
+    "compression": "maximum",
+    "extraResources": [
+      {
+        "from": "helper/SHEAL-Helper.exe",
+        "to": "helper/SHEAL-Helper.exe"
+      }
+    ],
+    "electronLanguages": [
+      "es",
+      "en-US"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "artifactName": "SHEAL-LAUNCHER-Portable.${ext}"
+    },
+    "portable": {
+      "artifactName": "SHEAL-LAUNCHER-Portable.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SHEAL LAUNCHER",
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "SHEAL-LAUNCHER-Setup.${ext}",
+      "installerLanguages": [
+        "es_ES",
+        "en_US"
+      ]
+    }
+  },
+  "dependencies": {
+    "discord-rpc": "^4.0.1",
+    "pwfauth": "^1.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "electron": "^45.3.3",
+    "electron-builder": "^26.18.0",
+    "javascript-obfuscator": "^5.10.1",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.0",
+    "vite": "^8.0.5"
+  }
+}
