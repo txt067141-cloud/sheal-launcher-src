@@ -13,12 +13,35 @@ const zlib = require("node:zlib");
 const { spawn, spawnSync } = require("node:child_process");
 const { Readable } = require("node:stream");
 const { pipeline, finished } = require("node:stream/promises");
+const crypto = require("node:crypto");
 
 const MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
 const RESOURCES_URL = "https://resources.download.minecraft.net";
 // Espejo alternativo (mismo contenido que Mojang, usado por launchers tipo TLauncher).
 const MIRROR = "https://bmclapi2.bangbang93.com";
 const MIRROR_MANIFEST = `${MIRROR}/mc/game/version_manifest_v2.json`;
+
+/** UUID offline estable derivado del nombre (estilo OfflinePlayer). */
+function offlineUuid(name) {
+  const raw = "OfflinePlayer:" + name.toLowerCase();
+  const hash = crypto.createHash("md5").update(raw).digest("hex");
+  return `${hash.slice(0,8)}-${hash.slice(8,12)}-${hash.slice(12,16)}-${hash.slice(16,20)}-${hash.slice(20,32)}`;
+}
+
+/** Token JWT falso (sin firma verificable) para sesiones offline en MC moderno. */
+function offlineToken(name) {
+  const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+  const now = Math.floor(Date.now() / 1000);
+  const header = b64({ alg: "none", typ: "JWT" });
+  const payload = b64({
+    sub: offlineUuid(name),
+    name,
+    exp: now + 86400,
+    iat: now,
+    iss: "sheal-launcher",
+  });
+  return `${header}.${payload}.offline`;
+}
 
 function createMinecraft({ userData, appData, send, updater }) {
   // Prioridad: archivos descargados por el updater > app.asar.
@@ -1007,15 +1030,23 @@ function createMinecraft({ userData, appData, send, updater }) {
     if (!baseCp) throw new Error("No se encontraron librerías. Vuelve a instalar la versión.");
     const cp = fabric ? [...fabric.libs, baseCp].join(path.delimiter) : baseCp;
 
-    // Si hay token de Microsoft vinculado, se usa la identidad premium real.
+    // Modo OFFLINE: jugar sin cuenta premium. Se genera una identidad local
+    // estable (UUID derivado del nombre) y un token tipo JWT falso que Minecraft
+    // acepta para sesiones "msa" sin contactar con los servidores de Mojang.
     const premium = Boolean(options.accessToken && options.uuid);
-    const username = premium ? options.username : options.username || "ShealPlayer";
+    const offline = options.offline === true;
+    const username = premium ? options.username : (options.username || "ShealPlayer");
+    const safeName = String(username).replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 16) || "ShealPlayer";
     const uuid = premium
       ? options.uuid
-      : "00000000-0000-0000-0000-" + Math.random().toString(16).slice(2, 14).padEnd(12, "0");
+      : offline
+        ? offlineUuid(safeName)
+        : "00000000-0000-0000-0000-" + Math.random().toString(16).slice(2, 14).padEnd(12, "0");
     const token = premium
       ? options.accessToken
-      : Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+      : offline
+        ? offlineToken(safeName)
+        : Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
     const nativesDir = path.join(d.versions, id, `natives-${id}`);
     deployNativeLibs(nativesDir);
     const assetIndexId = version.assetIndex?.id || id;
@@ -1033,7 +1064,7 @@ function createMinecraft({ userData, appData, send, updater }) {
       auth_access_token: token,
       clientid: "-",
       auth_xuid: "-",
-      user_type: premium ? "msa" : "legacy",
+      user_type: (premium || offline) ? "msa" : "legacy",
       version_name: id,
       version_type: version.type === "snapshot" ? "snapshot" : "release",
       resolution_width: "1280",
@@ -1099,7 +1130,7 @@ function createMinecraft({ userData, appData, send, updater }) {
         "--assetIndex", assetIndexId,
         "--uuid", uuid,
         "--accessToken", token,
-        "--userType", premium ? "msa" : "legacy",
+        "--userType", (premium || offline) ? "msa" : "legacy",
         "--versionType", placeholders.version_type,
       ];
     }
