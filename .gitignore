@@ -1,12 +1,6 @@
 node_modules/
-dist/
-dist-electron/
+.vite/
 release/
-release2/
-helper/
-helper-src/
-helper-out/
-*.exe
-*.blockmap
-*.log
+*.local
 .DS_Store
+Thumbs.db
