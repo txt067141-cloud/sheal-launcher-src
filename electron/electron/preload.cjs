@@ -34,6 +34,7 @@ contextBridge.exposeInMainWorld("rpc", {
   saveConfig: (config) => ipcRenderer.invoke("rpc:saveConfig", config),
   openPortal: () => ipcRenderer.invoke("rpc:openPortal"),
   stop: () => ipcRenderer.invoke("rpc:stop"),
+  update: (info) => ipcRenderer.invoke("rpc:update", info),
 });
 
 contextBridge.exposeInMainWorld("mc", {

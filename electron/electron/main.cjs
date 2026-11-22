@@ -112,6 +112,7 @@ ipcMain.handle("rpc:config", () => discord.getConfig());
 ipcMain.handle("rpc:saveConfig", (_event, config) => discord.saveConfig(config));
 ipcMain.handle("rpc:openPortal", () => shell.openExternal(discord.DEV_PORTAL));
 ipcMain.handle("rpc:stop", () => discord.stop());
+ipcMain.handle("rpc:update", (_event, info) => discord.update(info || {}));
 
 ipcMain.handle("keyauth:config", () => ({ name: "SHEAL", ownerid: "pwfauth" }));
 ipcMain.handle("keyauth:saveConfig", () => ({}));
@@ -215,7 +216,13 @@ ipcMain.handle("mc:launch", async (_event, id, options) => {
   // de --username) y con stderr redirigido a sheal-game.log.
   const result = await mc.launch(id, options || {});
   if (result?.ok) {
-    discord.start({ version: id, username: options?.username || "Jugador" })
+    const gameLog = path.join(app.getPath("appData"), ".minecraft", "logs", "sheal-game.log");
+    discord.start({
+      version: id,
+      username: options?.username || "Jugador",
+      server: options?.server || null,
+      logPath: gameLog,
+    })
       .then((rpc) => {
         if (rpc?.ok) watchGameAndStopRpc(result.pid);
       })
