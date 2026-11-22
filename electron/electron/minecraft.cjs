@@ -589,7 +589,16 @@ function createMinecraft({ userData, appData, send, updater }) {
     if (modSource) {
       try { fs.copyFileSync(modSource, path.join(modsDir, "sheal-particles.jar")); } catch {}
     }
-    report({ id: "fabric", phase: "fabric", label: "Partículas listas", percent: 100 });
+    // Copiamos tambien el mod de construcciones.
+    const buildSource = [
+      updated("mods/sheal-build.jar"),
+      path.join(appRoot, "dist", "mods", "sheal-build.jar"),
+      path.join(appRoot, "public", "mods", "sheal-build.jar"),
+    ].find((file) => file && fs.existsSync(file));
+    if (buildSource) {
+      try { fs.copyFileSync(buildSource, path.join(modsDir, "sheal-build.jar")); } catch {}
+    }
+    report({ id: "fabric", phase: "fabric", label: "Mods listos", percent: 100 });
     return { libs, mainClass: profile.mainClass || "net.fabricmc.loader.impl.launch.knot.KnotClient", jvm: profile.arguments?.jvm || [] };
   }
 
