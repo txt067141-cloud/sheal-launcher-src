@@ -3157,3 +3157,142 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ================= BEDROCK ================= */
+.bedrock-page { display: flex; flex-direction: column; gap: 16px; }
+.bedrock-hero {
+  display: flex;
+  gap: 24px;
+  padding: 26px;
+  border: 1px solid rgba(168,120,247,0.3);
+  border-radius: 16px;
+  background: linear-gradient(120deg, rgba(139,70,238,0.18), rgba(6,80,120,0.16), rgba(255,255,255,0.01));
+  align-items: center;
+}
+.bedrock-hero-art {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 120px;
+  height: 120px;
+  border-radius: 20px;
+  background: radial-gradient(circle at 30% 25%, rgba(120,200,255,0.35), rgba(20,30,60,0.6));
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 1px rgba(160,210,255,0.25) inset;
+}
+.bedrock-cube { color: #bfe6ff; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); }
+.bedrock-hero-body { min-width: 0; }
+.bedrock-hero-body h2 { margin: 6px 0 8px; font-size: 22px; color: #f2ecff; }
+.bedrock-hero-body p { margin: 0 0 14px; color: var(--muted); font-size: 11px; line-height: 1.6; max-width: 560px; }
+.bedrock-status { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 10px; color: var(--muted); }
+.bedrock-status b { color: #e8dff6; }
+.bedrock-dot { width: 8px; height: 8px; border-radius: 50%; background: #888; box-shadow: 0 0 0 3px rgba(136,136,136,0.18); }
+.bedrock-dot.ok { background: #4ade9a; box-shadow: 0 0 0 3px rgba(74,222,154,0.18); }
+.bedrock-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.bedrock-play {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px; border: 0; border-radius: 9px;
+  background: linear-gradient(135deg, #8b46ee, #5b21b6);
+  color: #fff; font-size: 11px; font-weight: 800; cursor: pointer;
+  box-shadow: 0 6px 16px rgba(139,70,238,0.3);
+}
+.bedrock-play:disabled { opacity: 0.6; cursor: default; }
+.bedrock-store {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 14px; border: 1px solid var(--line);
+  border-radius: 9px; background: rgba(255,255,255,0.03);
+  color: #e8dff6; font-size: 10.5px; cursor: pointer;
+}
+.bedrock-store:hover { border-color: rgba(185,140,255,0.5); }
+.bedrock-features { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+.bedrock-feature {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 14px; border: 1px solid var(--line);
+  border-radius: 12px; background: rgba(255,255,255,0.02);
+}
+.feature-icon {
+  flex-shrink: 0; display: grid; place-items: center;
+  width: 34px; height: 34px; border-radius: 9px;
+  color: #c9a8ff; background: rgba(139,70,238,0.16);
+}
+.bedrock-feature strong { display: block; color: #e8dff6; font-size: 11px; margin-bottom: 3px; }
+.bedrock-feature small { color: var(--muted); font-size: 9px; line-height: 1.5; }
+@media (max-width: 860px) {
+  .bedrock-hero { flex-direction: column; align-items: flex-start; }
+  .bedrock-features { grid-template-columns: 1fr; }
+}
+
+/* ============ MODO OFFLINE ============ */
+.offline-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(168,120,247,0.3);
+  border-radius: 13px;
+  background: linear-gradient(110deg, rgba(139,70,238,0.14), rgba(255,255,255,0.01));
+}
+.offline-icon {
+  flex-shrink: 0; display: grid; place-items: center;
+  width: 40px; height: 40px; border-radius: 11px;
+  color: #c9a8ff; background: rgba(139,70,238,0.18);
+  box-shadow: 0 0 0 1px rgba(185,140,255,0.2) inset;
+}
+.offline-body { min-width: 0; flex: 1; }
+.offline-body strong { display: block; color: #f0e8ff; font-size: 12px; margin-bottom: 3px; }
+.offline-body small { display: block; color: var(--muted); font-size: 9.5px; line-height: 1.5; }
+
+/* ============ BANCOS DE EMOTES ============ */
+.bank-tabs { display: grid; grid-template-columns: repeat(10, minmax(0,1fr)); gap: 4px; margin: 10px 0 8px; }
+.bank-tabs button {
+  padding: 6px 0; border: 1px solid var(--line); border-radius: 7px;
+  background: rgba(255,255,255,0.03); color: var(--muted);
+  font-size: 10px; font-weight: 700; cursor: pointer;
+}
+.bank-tabs button:hover { border-color: rgba(185,140,255,0.5); color: #e8dff6; }
+.bank-tabs button.active { border-color: #b98cff; color: #fff; background: rgba(139,70,238,0.22); }
+.bank-name { margin: 0 0 6px; color: #d9b8ff; font-size: 10px; font-weight: 700; }
+.bank-name small { color: var(--dim); font-weight: 400; }
+
+/* ============ BOTON JUGAR EN SERVIDOR ============ */
+.server-join {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 7px 11px; border: 0; border-radius: 8px;
+  background: linear-gradient(135deg, #8b46ee, #5b21b6);
+  color: #fff; font-size: 9.5px; font-weight: 800;
+  cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(139,70,238,0.25);
+}
+.server-join:hover { filter: brightness(1.15); }
+
+/* ============ GENERADOR DE CONSTRUCCIONES ============ */
+.build-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 6px 10px;
+  margin: 8px 0;
+}
+.build-list span { color: var(--muted); font-size: 9.5px; }
+.build-list b { display: inline-block; min-width: 62px; color: #c9a8ff; font-weight: 700; }
+
+/* ============ EDITOR DE TEMAS ============ */
+.edit-builds-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  width: 100%; margin: 6px 0 10px; padding: 10px 12px;
+  border: 1px solid rgba(185,140,255,0.4); border-radius: 9px;
+  background: rgba(139,70,238,0.14); color: #e8dff6;
+  font-size: 10px; font-weight: 700; cursor: pointer;
+}
+.edit-builds-btn:hover { border-color: #b98cff; background: rgba(139,70,238,0.22); }
+.build-schema {
+  margin-top: 10px; padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: 9px;
+  background: rgba(255,255,255,0.02);
+  color: var(--muted); font-size: 9px; line-height: 1.7;
+}
+.build-schema b { color: #d9b8ff; }
+.build-schema i { color: #c9a8ff; font-style: normal; }
+.build-schema code {
+  padding: 1px 5px; margin: 0 2px; border-radius: 4px;
+  background: rgba(139,70,238,0.18); color: #e8dff6;
+  font-family: monospace; font-size: 9px;
+}

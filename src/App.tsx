@@ -5,7 +5,7 @@ import { MountainArt } from "./components/MountainArt";
 import { SkinAura } from "./components/SkinAura";
 import { logout as invalidateSession, verifySession } from "./lib/accounts";
 
-type Page = "inicio" | "servidores" | "versiones" | "skins" | "ajustes";
+type Page = "inicio" | "servidores" | "versiones" | "bedrock" | "skins" | "ajustes";
 type Lang = "ES" | "EN";
 
 type Server = {
@@ -56,6 +56,7 @@ type McApi = {
   installed: () => Promise<string[]>;
   install: (id: string) => Promise<{ ok: boolean; id: string }>;
   launch: (id: string, options?: Record<string, unknown>) => Promise<McLaunchResult>;
+  editBuilds: () => Promise<{ path: string }>;
   setConfig: (next: Record<string, string>) => Promise<unknown>;
   openFolder: () => Promise<unknown>;
   openSubfolder: (name: string) => Promise<{ path: string; opened: boolean }>;
@@ -90,12 +91,22 @@ type RpcApi = {
   saveConfig: (config: RpcConfig) => Promise<RpcConfig>;
   openPortal: () => Promise<unknown>;
   stop: () => Promise<unknown>;
+  update: (info: { version?: string; username?: string; server?: string | null; mode?: string }) => Promise<unknown>;
+};
+
+type BedrockInfo = { installed: boolean; version?: string; package?: string; location?: string };
+type BedrockApi = {
+  detect: () => Promise<BedrockInfo>;
+  install: () => Promise<{ ok: boolean; message?: string }>;
+  launch: () => Promise<{ ok: boolean; message?: string }>;
+  openStore: () => Promise<unknown>;
 };
 
 declare global {
   interface Window {
     rpc?: RpcApi;
     keyauth?: KeyAuthApi;
+    bedrock?: BedrockApi;
     mc?: McApi;
     uris?: {
       isDesktop?: boolean;
@@ -194,6 +205,21 @@ const PARTICLE_SHAPES = [
 
 const PARTICLE_COLORS = ["#a855f7", "#ec4899", "#ef4444", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#3b82f6", "#ffffff"];
 
+// 100 emotes de baile / musica electronica (10 bancos x 10).
+const EMOTE_NAMES = [
+  "Saludar","Bailar","Saltar","Agacharse","Girar","Celebrar","Baile Disco","Baile Lento","Baile Salto","Latido House",
+  "Techno Pulse","Techno Step","Techno Drive","Techno Rave","Acid Bass","Robot Dance","Metro Techno","Industrial","Hard Techno","Minimal Techno",
+  "EDM Drop","Festival Jump","Confeti","Subida","Explosion","Neon Party","Strobe Light","Bass Drop","Anthem","Mainstage",
+  "Dubstep Wobble","Wobble Bass","Trap Bounce","Trap Slide","Dab","Milky Way","Glitch Hop","Riddim","Brostep","Trap Star",
+  "Reggaeton","Perreo","Salsa","Bachata","Merengue","Latin Beat","Cumbia","Dembow","Mambo","Chocolate",
+  "Hip Hop","Breakdance","Moonwalk","Funky Walk","B-Boy","Swag","Bounce Rap","Old School","Fresh Dance","Groove",
+  "Electro Shock","Synth Wave","Retro 80s","Arcade","Laser Dance","Circuit","Voltage","Cyber Dance","Neon Ninja","Synth Pop",
+  "DnB Break","Jungle Rush","Ragga Jump","Liquid Funk","Neuro Funk","Jump Up","Hardcore","Happy Hardcore","Breakbeat","Big Beat",
+  "K-pop","J-pop","Afrobeat","Dancehall","Soca","Gabber","Ghetto House","Fidget","Electro Swing","Bounce House",
+  "Matrix","Zero Gravity","Flotar","Terremoto","Tornado","Rayo","Cometa","Supernova","Agujero Negro","FINAL BOSS",
+];
+const EMOTE_BANKS = ["House & Clásicos", "Techno", "EDM & Festival", "Dubstep & Trap", "Reggaetón & Latin", "Hip Hop & Funk", "Electro & Synth", "Drum & Bass", "Global & Random", "Especiales"];
+
 const WING_STYLES = [
   { id: "angel", label: "Ángel", icon: "✧" },
   { id: "phoenix", label: "Fénix", icon: "♨" },
@@ -253,6 +279,7 @@ const DICT = {
     inicio: "Inicio",
     servidores: "Servidores",
     versiones: "Versiones",
+    bedrock: "Bedrock",
     skins: "Skins y cosméticos",
     ajustes: "Ajustes",
     homeTitle: "Vamos a jugar.",
@@ -261,6 +288,8 @@ const DICT = {
     serverSub: "Descubre comunidades y encuentra tu próxima partida.",
     versionsTitle: "Versiones de Minecraft.",
     versionsSub: "Descarga e instala cualquier versión para jugar.",
+    bedrockTitle: "Minecraft Bedrock.",
+    bedrockSub: "Instala y juega la edición Bedrock desde el Microsoft Store.",
     skinsTitle: "Tu estilo, tu mundo.",
     skinsSub: "Elige una skin y entra con identidad propia.",
     settingsTitle: "Ajustes",
@@ -304,6 +333,7 @@ const DICT = {
     inicio: "Home",
     servidores: "Servers",
     versiones: "Versions",
+    bedrock: "Bedrock",
     skins: "Skins & cosmetics",
     ajustes: "Settings",
     homeTitle: "Let's play.",
@@ -312,6 +342,8 @@ const DICT = {
     serverSub: "Discover communities and find your next match.",
     versionsTitle: "Minecraft versions.",
     versionsSub: "Download and install any version to play.",
+    bedrockTitle: "Minecraft Bedrock.",
+    bedrockSub: "Install and play the Bedrock Edition from the Microsoft Store.",
     skinsTitle: "Your style, your world.",
     skinsSub: "Pick a skin and jump in with your own identity.",
     settingsTitle: "Settings",
@@ -464,6 +496,11 @@ export default function App() {
   const [bellOpen, setBellOpen] = useState(false);
   const [serverQuery, setServerQuery] = useState("");
   const [heroIndex, setHeroIndex] = useState(0);
+  const [bedrockInfo, setBedrockInfo] = useState<BedrockInfo>({ installed: false });
+  const [bedrockBusy, setBedrockBusy] = useState(false);
+  const [offlineMode, setOfflineMode] = useStorage("sheal_offline_mode", false);
+  const [emoteBank, setEmoteBank] = useState(0);
+  const [activeServer, setActiveServer] = useState<string | null>(null);
   const [addingServer, setAddingServer] = useState(false);
   const [newServerName, setNewServerName] = useState("");
   const [newServerIp, setNewServerIp] = useState("");
@@ -533,6 +570,7 @@ export default function App() {
   useEffect(() => {
     window.keyauth?.config().then(setKeyConfig).catch(() => undefined);
     window.rpc?.config().then(setRpcConfig).catch(() => undefined);
+    window.bedrock?.detect().then(setBedrockInfo).catch(() => undefined);
   }, []);
 
   // Temporizador de la clave: cuenta atras y cierra sesion al expirar (solo claves).
@@ -764,6 +802,8 @@ export default function App() {
         particleColor,
         wings: wingsOn,
         wingStyle,
+        offline: offlineMode,
+        server: activeServer,
         fullscreen: settings.fullscreen,
         ram: 2048,
       });
@@ -855,10 +895,11 @@ export default function App() {
     { label: t.homeTitle, sub: t.homeSub },
     { label: t.serverTitle, sub: t.serverSub },
     { label: t.versionsTitle, sub: t.versionsSub },
+    { label: t.bedrockTitle, sub: t.bedrockSub },
     { label: t.skinsTitle, sub: t.skinsSub },
     { label: t.settingsTitle, sub: t.settingsSub },
   ];
-  const head = heads[["inicio", "servidores", "versiones", "skins", "ajustes"].indexOf(page)];
+  const head = heads[["inicio", "servidores", "versiones", "bedrock", "skins", "ajustes"].indexOf(page)];
 
   return (
     <div
@@ -911,6 +952,7 @@ export default function App() {
                 ["inicio", "home"],
                 ["servidores", "servers"],
                 ["versiones", "download"],
+                ["bedrock", "box"],
                 ["skins", "shirt"],
               ] as [Page, IconName][]).map(([id, icon]) => (
                 <button
@@ -1168,6 +1210,19 @@ export default function App() {
                             <Icon name="copy" size={15} />
                           </button>
                         </div>
+                        <button
+                          type="button"
+                          className="server-join"
+                          title="Jugar en este servidor (se mostrará en Discord)"
+                          onClick={() => {
+                            setActiveServer(server.ip);
+                            window.rpc?.update({ server: server.ip });
+                            showToast(`Conectando a ${server.name} · se mostrará en Discord`);
+                            play();
+                          }}
+                        >
+                          <Icon name="play" size={12} /> Jugar
+                        </button>
                       </article>
                     ))}
                     {!filteredServers.length && (
@@ -1185,6 +1240,15 @@ export default function App() {
               {/* ---------------- VERSIONES ---------------- */}
               {page === "versiones" && (
                 <div className="page-content versions-page">
+                  <div className="offline-card">
+                    <span className="offline-icon"><Icon name="shield" size={20} /></span>
+                    <div className="offline-body">
+                      <div><strong>Jugar sin cuenta premium (offline)</strong></div>
+                      <small>Crea un perfil local y juga sin iniciar sesión con Microsoft. Las partidas locales funcionan; el multijugador online requiere una cuenta original.</small>
+                    </div>
+                    <Toggle on={offlineMode} onChange={() => { setOfflineMode(!offlineMode); showToast(offlineMode ? "Modo premium activado" : "Modo offline activado"); }} label="Modo offline" />
+                  </div>
+
                   <div className="mc-info-card">
                     <div className="mc-info-row">
                       <span className="mc-info-icon"><Icon name="folder" size={17} /></span>
@@ -1318,6 +1382,106 @@ export default function App() {
                 </div>
               )}
 
+              {/* ---------------- BEDROCK ---------------- */}
+              {page === "bedrock" && (
+                <div className="page-content bedrock-page">
+                  <div className="bedrock-hero">
+                    <div className="bedrock-hero-art">
+                      <div className="bedrock-cube"><Icon name="box" size={54} /></div>
+                    </div>
+                    <div className="bedrock-hero-body">
+                      <span className="eyebrow"><i /> Bedrock Edition</span>
+                      <h2>Minecraft Bedrock</h2>
+                      <p>
+                        La edición Bedrock de Minecraft para Windows, disponible en el Microsoft Store.
+                        Descárgala desde aquí y juega con tus amigos en cualquier dispositivo.
+                      </p>
+                      <div className="bedrock-status">
+                        {bedrockInfo.installed ? (
+                          <>
+                            <span className="bedrock-dot ok" />
+                            <span><b>Instalado</b> {bedrockInfo.version ? `· v${bedrockInfo.version}` : ""}</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="bedrock-dot" />
+                            <span><b>No instalado</b> · disponible en Microsoft Store</span>
+                          </>
+                        )}
+                      </div>
+                      <div className="bedrock-actions">
+                        {bedrockInfo.installed ? (
+                          <button
+                            type="button"
+                            className="bedrock-play"
+                            disabled={bedrockBusy}
+                            onClick={async () => {
+                              setBedrockBusy(true);
+                              try {
+                                const r = await window.bedrock?.launch();
+                                showToast(r?.message || "Minecraft Bedrock iniciado");
+                              } catch { showToast("No se pudo iniciar Bedrock"); }
+                              finally { setBedrockBusy(false); }
+                            }}
+                          >
+                            <Icon name="play" size={16} /> {bedrockBusy ? "INICIANDO..." : "JUGAR BEDROCK"}
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="bedrock-play"
+                            disabled={bedrockBusy}
+                            onClick={async () => {
+                              setBedrockBusy(true);
+                              try {
+                                const r = await window.bedrock?.install();
+                                showToast(r?.message || "Abriendo Microsoft Store...");
+                              } catch { showToast("No se pudo abrir el Store"); }
+                              finally { setBedrockBusy(false); }
+                            }}
+                          >
+                            <Icon name="download" size={16} /> {bedrockBusy ? "ABRIENDO..." : "INSTALAR BEDROCK"}
+                          </button>
+                        )}
+                        <button type="button" className="bedrock-store" onClick={() => window.bedrock?.openStore()}>
+                          <Icon name="external" size={14} /> Ver en Microsoft Store
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bedrock-features">
+                    <div className="bedrock-feature">
+                      <span className="feature-icon"><Icon name="users" size={18} /></span>
+                      <div><strong>Juega con todos</strong><small>Conecta con amigos en Windows, móvil, consola y más.</small></div>
+                    </div>
+                    <div className="bedrock-feature">
+                      <span className="feature-icon"><Icon name="globe" size={18} /></span>
+                      <div><strong>Mercado y mundos</strong><small>Explora el Marketplace y miles de mapas creados por la comunidad.</small></div>
+                    </div>
+                    <div className="bedrock-feature">
+                      <span className="feature-icon"><Icon name="shield" size={18} /></span>
+                      <div><strong>Oficial y seguro</strong><small>Se instala desde el Microsoft Store de forma oficial.</small></div>
+                    </div>
+                  </div>
+
+                  <div className="offline-card" style={{ marginTop: 4 }}>
+                    <span className="offline-icon"><Icon name="user" size={20} /></span>
+                    <div className="offline-body">
+                      <div><strong>¿Sin cuenta premium?</strong></div>
+                      <small>Juega Minecraft Java Edition en modo offline (perfil local). Ve a <b>Versiones</b> y activa "Jugar sin cuenta premium" para crear tu perfil local.</small>
+                    </div>
+                    <button type="button" className="bedrock-store" onClick={() => { setOfflineMode(true); setPage("versiones"); showToast("Modo offline activado — elige una versión para jugar"); }}>
+                      <Icon name="arrowRight" size={14} /> Ir a Versiones
+                    </button>
+                  </div>
+
+                  <p className="cape-note">
+                    <Icon name="info" size={14} /> Bedrock requiere una cuenta de Microsoft y se instala desde el Microsoft Store. Para jugar sin premium usa el modo offline de Java Edition en la pestaña Versiones.
+                  </p>
+                </div>
+              )}
+
               {/* ---------------- SKINS ---------------- */}
               {page === "skins" && (
                 <div className="page-content skins-page">
@@ -1413,20 +1577,46 @@ export default function App() {
                         <Icon name="info" size={14} /> El color afecta solo a las partículas "Polvo" y "Aura". Las alas mantienen el color original de su textura.
                       </p>
                       <div className="settings-card" style={{ marginTop: 10 }}>
-                        <div className="settings-group-title"><Icon name="sparkles" size={16} /> Emotes en el juego</div>
-                        <p className="settings-menu-label">Mantén Ctrl y pulsa un número mientras juegas</p>
-                        <div className="emote-list">
-                          <span><b>Ctrl + 1</b> Saludar</span>
-                          <span><b>Ctrl + 2</b> Bailar</span>
-                          <span><b>Ctrl + 3</b> Saltar</span>
-                          <span><b>Ctrl + 4</b> Agacharse</span>
-                          <span><b>Ctrl + 5</b> Girar</span>
-                          <span><b>Ctrl + 6</b> Celebrar</span>
-                          <span><b>Ctrl + 7</b> Baile Disco</span>
-                          <span><b>Ctrl + 8</b> Baile Lento</span>
-                          <span><b>Ctrl + 9</b> Baile Salto</span>
-                          <span><b>Ctrl + 0</b> Detener</span>
+                        <div className="settings-group-title"><Icon name="sparkles" size={16} /> 100 Emotes de baile</div>
+                        <p className="settings-menu-label">Mantén <b>Ctrl + número</b> para bailar · <b>Alt + número</b> cambia de banco</p>
+                        <div className="bank-tabs">
+                          {EMOTE_BANKS.map((b, i) => (
+                            <button key={i} type="button" className={emoteBank === i ? "active" : ""} onClick={() => setEmoteBank(i)} title={b}>
+                              {i + 1}
+                            </button>
+                          ))}
                         </div>
+                        <p className="bank-name">{emoteBank + 1}. {EMOTE_BANKS[emoteBank]} <small>({emoteBank * 10 + 1}–{emoteBank * 10 + 10})</small></p>
+                        <div className="emote-list">
+                          {EMOTE_NAMES.slice(emoteBank * 10, emoteBank * 10 + 10).map((name, i) => (
+                            <span key={i}><b>Ctrl + {(i + 1) % 10}</b> {name}</span>
+                          ))}
+                        </div>
+                        <p className="cape-note"><Icon name="info" size={14} /> Ctrl + 0 detiene el emote · 10 bancos con 10 bailes cada uno (música electrónica, reggaetón, hip hop y más).</p>
+                      </div>
+
+                      <div className="settings-card" style={{ marginTop: 10 }}>
+                        <div className="settings-group-title"><Icon name="box" size={16} /> Esquemas de construcción</div>
+                        <p className="settings-menu-label">Muestra una guía de dónde va cada bloque — tú los colocas</p>
+                        <button type="button" className="edit-builds-btn" onClick={async () => {
+                          try { await window.mc?.editBuilds(); showToast("Abriendo sheal-builds.json en el Bloc de notas"); }
+                          catch { showToast("No se pudo abrir el archivo"); }
+                        }}>
+                          <Icon name="settings" size={14} /> Editar mis temas (sheal-builds.json)
+                        </button>
+                        <div className="build-list">
+                          <span><b>B</b> Abrir menú en el juego</span>
+                          <span><b>1 - 8</b> Elegir esquema</span>
+                          <span><b>Enter</b> Mostrar guía</span>
+                          <span><b>C</b> Guía de mi tema</span>
+                          <span><b>V</b> Ver mi tema</span>
+                        </div>
+                        <div className="build-schema">
+                          <b>Cómo crear tu tema:</b> abre el archivo con el botón de arriba. Cada <i>capa</i> es una fila de texto; cada carácter es un bloque según la paleta:
+                          <code>#</code> piedra · <code>o</code> madera · <code>g</code> cristal · <code>.</code> vacío.
+                          Ejemplo: <code>["###","#o#","###"]</code> = una capa 3×3.
+                        </div>
+                        <p className="cape-note"><Icon name="info" size={14} /> Pulsa <b>B</b> en el juego para abrir el menú. La guía muestra puntos de colores donde va cada bloque (no los coloca). Guarda el archivo y vuelve a entrar al mundo. Solo en 26.3 con Fabric.</p>
                       </div>
                     </div>
                   )}
