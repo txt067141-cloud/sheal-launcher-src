@@ -51,6 +51,7 @@ contextBridge.exposeInMainWorld("mc", {
   openLauncher: () => ipcRenderer.invoke("mc:openLauncher"),
   diagnostics: () => ipcRenderer.invoke("mc:diagnostics"),
   updateParticles: (shape, color, wings, wingStyle) => ipcRenderer.invoke("mc:updateParticles", shape, color, wings, wingStyle),
+  editBuilds: () => ipcRenderer.invoke("mc:editBuilds"),
   chooseDir: () => ipcRenderer.invoke("mc:chooseDir"),
   chooseJava: () => ipcRenderer.invoke("mc:chooseJava"),
   onProgress: (callback) => {

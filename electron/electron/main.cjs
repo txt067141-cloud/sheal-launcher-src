@@ -248,6 +248,27 @@ ipcMain.handle("mc:openSubfolder", async (_event, name) => {
   const result = await shell.openPath(target);
   return { path: target, opened: result === "", result };
 });
+ipcMain.handle("mc:editBuilds", async () => {
+  // Abre (o crea) el archivo de construcciones personalizadas en el Bloc de notas.
+  const target = path.join(mc.minecraftDir(), "sheal-builds.json");
+  const template = "{\n" +
+    '  "palette": { "#": "stone", "o": "oak_planks", "g": "glass", ".": "air" },\n' +
+    '  "builds": [\n' +
+    "    {\n" +
+    '      "name": "Mi Casa",\n' +
+    '      "layers": [\n' +
+    '        ["###", "###", "###"],\n' +
+    '        ["#o#", "o.o", "#g#"],\n' +
+    '        ["###", "###", "###"]\n' +
+    "      ]\n" +
+    "    }\n" +
+    "  ]\n" +
+    "}\n";
+  try { if (!fs.existsSync(target)) fs.writeFileSync(target, template, "utf8"); } catch {}
+  const { spawn } = require("node:child_process");
+  try { spawn("notepad.exe", [target], { detached: true, windowsHide: false }).unref(); } catch {}
+  return { path: target };
+});
 ipcMain.handle("mc:installSkin", async (_event, fileName, username, uuid) => mc.installSkin(fileName, username, uuid));
 ipcMain.handle("mc:ensureJava", async (_event, id) => {
   // El helper C# (CmlLib.Core) gestiona Java por su cuenta.
