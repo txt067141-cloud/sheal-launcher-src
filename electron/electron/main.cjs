@@ -241,7 +241,7 @@ ipcMain.handle("mc:openFolder", async () => {
   return { path: target, result };
 });
 ipcMain.handle("mc:openSubfolder", async (_event, name) => {
-  const allowed = ["mods", "shaderpacks", "resourcepacks", "saves", "skins"];
+  const allowed = ["mods", "shaderpacks", "resourcepacks", "saves", "skins", "schematics"];
   if (!allowed.includes(name)) throw new Error("Carpeta no permitida");
   const target = path.join(mc.minecraftDir(), name);
   try { fs.mkdirSync(target, { recursive: true }); } catch {}
